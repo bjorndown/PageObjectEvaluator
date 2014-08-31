@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.42.2'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '2.42.2'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '2.42.2'
+}
+
+idea.project.ipr {
+    beforeMerged { project ->
+        project.modulePaths.clear()
+    }
+}
+
+idea.module.iml {
+    withXml {
+        it.node.@type = "PLUGIN_MODULE"
+    }
+}
