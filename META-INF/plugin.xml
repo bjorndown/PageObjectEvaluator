@@ -37,10 +37,12 @@
 
   <actions>
     <!-- Add your actions here -->
-      <action id="poe.EvaluatePageObjectAction" class="EvaluatePageObjectAction" text="Evaluate PageObject"
-              description="Evaluate PageObject against an URL or File">
+      <group popup="true" text="Evaluate PageObject" id="pageObjectEvaluatorMenu" >
           <add-to-group group-id="ToolsMenu" anchor="last"/>
-      </action>
+          <action id="pageObjectEvaluator.fileOrUrl" class="com.intellij.plugins.pageObjectEvaluator.EvaluateAgainstFileOrUrlAction" text="File/URL" description="Evaluate PageObject against an URL or File"/>
+          <action id="pageObjectEvaluator.pastedText" class="com.intellij.plugins.pageObjectEvaluator.EvaluateAgainstPastedHtmlAction" text="Pasted text" description="Evaluate PageObject against pasted HTML"/>
+      </group>
+
   </actions>
 
 </idea-plugin>

@@ -1,20 +1,17 @@
+package com.intellij.plugins.pageObjectEvaluator;
+
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.fileChooser.FileChooserDialog;
-import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.util.lang.UrlClassLoader;
-import org.apache.commons.lang.Validate;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
@@ -26,12 +23,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
-public class EvaluatePageObjectAction extends AnAction {
+abstract class AbstractEvaluateAction extends AnAction {
 
-    private static final Logger LOG = Logger.getLogger(EvaluatePageObjectAction.class.getClass());
+    private static final Logger LOG = Logger.getLogger(AbstractEvaluateAction.class.getClass());
     public static final String FILE_PROTOCOL = "file://";
-    private Project project;
 
+    @Override
     public void actionPerformed(AnActionEvent e) {
         PsiJavaFile psiFile = getPsiFile(e);
 
@@ -49,7 +46,7 @@ public class EvaluatePageObjectAction extends AnAction {
     }
 
     private PsiJavaFile getPsiFile(AnActionEvent e) {
-        project = e.getProject();
+        Project project = e.getProject();
         if (project == null) {
             return null;
         }
@@ -64,16 +61,11 @@ public class EvaluatePageObjectAction extends AnAction {
 
     private Object populatePageObject(Class clazz) {
         WebDriver driver = new HtmlUnitDriver();
-        driver.get(getFileToEvaluate());
+        driver.get(getUrlToEvaluate());
         return PageFactory.initElements(driver, clazz);
     }
 
-    private String getFileToEvaluate() {
-        FileChooserDialog fileChooser = FileChooserFactoryImpl.getInstance().createFileChooser(FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), null, null);
-        VirtualFile[] chosenFile = fileChooser.choose(null, null);
-        Validate.isTrue(chosenFile.length == 1, "FileChooser did not return one file");
-        return FILE_PROTOCOL + chosenFile[0].getPresentableUrl();
-    }
+    protected abstract String getUrlToEvaluate();
 
     private Class loadClass(PsiJavaFile psiFile) throws MalformedURLException, ClassNotFoundException {
         URL url = new URL(FILE_PROTOCOL + getModuleOutputPath(psiFile) + "/");
