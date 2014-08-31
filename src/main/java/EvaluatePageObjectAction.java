@@ -2,7 +2,6 @@ import com.intellij.compiler.make.MakeUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -22,9 +21,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
-public class EvalutePageObjectAction extends AnAction {
+public class EvaluatePageObjectAction extends AnAction {
 
-    private static final Logger LOG = Logger.getLogger(EvalutePageObjectAction.class.getClass());
+    private static final Logger LOG = Logger.getLogger(EvaluatePageObjectAction.class.getClass());
     public static final String FILE_PROTOCOL = "file://";
     private Project project;
 

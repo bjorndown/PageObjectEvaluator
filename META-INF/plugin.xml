@@ -37,7 +37,7 @@
 
   <actions>
     <!-- Add your actions here -->
-      <action id="poe.EvalutePageObjectAction" class="EvalutePageObjectAction" text="Evaluate PageObject"
+      <action id="poe.EvaluatePageObjectAction" class="EvaluatePageObjectAction" text="Evaluate PageObject"
               description="Evaluate PageObject against an URL or File">
           <add-to-group group-id="ToolsMenu" anchor="last"/>
       </action>
