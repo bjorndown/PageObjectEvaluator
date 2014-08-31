@@ -2,14 +2,19 @@ import com.intellij.compiler.make.MakeUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileChooser.FileChooserDialog;
+import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.util.lang.UrlClassLoader;
+import org.apache.commons.lang.Validate;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
@@ -59,12 +64,15 @@ public class EvaluatePageObjectAction extends AnAction {
 
     private Object populatePageObject(Class clazz) {
         WebDriver driver = new HtmlUnitDriver();
-        driver.get(FILE_PROTOCOL + getFileToEvaluate());
+        driver.get(getFileToEvaluate());
         return PageFactory.initElements(driver, clazz);
     }
 
     private String getFileToEvaluate() {
-        return project.getBasePath() + "/test.html";
+        FileChooserDialog fileChooser = FileChooserFactoryImpl.getInstance().createFileChooser(FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), null, null);
+        VirtualFile[] chosenFile = fileChooser.choose(null, null);
+        Validate.isTrue(chosenFile.length == 1, "FileChooser did not return one file");
+        return FILE_PROTOCOL + chosenFile[0].getPresentableUrl();
     }
 
     private Class loadClass(PsiJavaFile psiFile) throws MalformedURLException, ClassNotFoundException {
