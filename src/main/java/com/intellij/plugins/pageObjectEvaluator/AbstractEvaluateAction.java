@@ -3,7 +3,9 @@ package com.intellij.plugins.pageObjectEvaluator;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.impl.LineSet;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -21,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.*;
 
 abstract class AbstractEvaluateAction extends AnAction {
 
@@ -35,11 +37,18 @@ abstract class AbstractEvaluateAction extends AnAction {
         if (psiFile == null) {
             return;
         }
-
+        Editor editor = e.getData(PlatformDataKeys.EDITOR);
+        if (editor == null) {
+            return;
+        }
         try {
             Class clazz = loadClass(psiFile);
             Object pageObject = populatePageObject(clazz);
-            printOutputOfAllPublicNonArgMethodsToLog(pageObject);
+            HashMap<String, Object> methodNameToResult = evaluatePageObject(pageObject);
+            LineSet lineSet = new LineSet();
+            lineSet.documentCreated(editor.getDocument());
+            LineToMethodOutputMapper lineToMethodOutputMapper = new LineToMethodOutputMapper(methodNameToResult, psiFile, lineSet);
+            editor.getGutter().registerTextAnnotation(new MethodOutputGutterProvider(lineToMethodOutputMapper));
         } catch (ClassNotFoundException | MalformedURLException | InvocationTargetException | IllegalAccessException e1) {
             LOG.error("Error ", e1);
         }
@@ -70,26 +79,28 @@ abstract class AbstractEvaluateAction extends AnAction {
     private Class loadClass(PsiJavaFile psiFile) throws MalformedURLException, ClassNotFoundException {
         URL url = new URL(FILE_PROTOCOL + getModuleOutputPath(psiFile) + "/");
         UrlClassLoader classloader = UrlClassLoader.build().urls(url).parent(this.getClass().getClassLoader()).get();
-        return classloader.loadClass(buildFullyQualifiedClassName(psiFile));
+        return classloader.loadClass(getFullyQualifiedClassName(psiFile));
     }
 
-    private void printOutputOfAllPublicNonArgMethodsToLog(Object pageObject) throws IllegalAccessException, InvocationTargetException {
+    private HashMap<String, Object> evaluatePageObject(Object pageObject) throws IllegalAccessException, InvocationTargetException {
+        HashMap<String, Object> methodToOutputMap = new HashMap<>();
         for (Method method : pageObject.getClass().getMethods()) {
             if (method.getParameterCount() == 0 && shouldBeCalled(method)) {
                 try {
-                    LOG.info("Method '" + method.getName() + "': " + method.invoke(pageObject));
+                    methodToOutputMap.put(method.getName(), method.invoke(pageObject));
                 } catch (Exception e) {
-                    LOG.error("Exception while invoking method '" + method.getName() + "'", e);
+                    methodToOutputMap.put(method.getName(), e.getMessage());
                 }
             }
         }
+        return methodToOutputMap;
     }
 
     private boolean shouldBeCalled(Method method) {
-        return !Arrays.asList("wait", "notify", "notifyAll").contains(method.getName());
+        return !Arrays.asList("wait", "notify", "notifyAll", "toString", "hashCode", "getClass").contains(method.getName());
     }
 
-    private String buildFullyQualifiedClassName(PsiJavaFile psiFile) {
+    private String getFullyQualifiedClassName(PsiJavaFile psiFile) {
         return psiFile.getClasses()[0].getQualifiedName();
     }
 
