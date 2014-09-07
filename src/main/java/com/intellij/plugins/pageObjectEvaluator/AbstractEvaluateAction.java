@@ -19,6 +19,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.PageFactory;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -71,8 +72,29 @@ abstract class AbstractEvaluateAction extends AnAction {
     private Object populatePageObject(Class clazz) {
         WebDriver driver = new HtmlUnitDriver();
         driver.get(getUrlToEvaluate());
-        return PageFactory.initElements(driver, clazz);
+        Object pageObject = PageFactory.initElements(driver, clazz);
+        tryToInjectWebDriver(pageObject, driver);
+        return pageObject;
     }
+
+    private void tryToInjectWebDriver(Object pageObject, WebDriver driver) {
+        for (Field field : pageObject.getClass().getDeclaredFields()) {
+            if (field.getType().isAssignableFrom(WebDriver.class)) {
+                try {
+                    if (field.isAccessible()) {
+                        field.set(pageObject, driver);
+                    } else {
+                        field.setAccessible(true);
+                        field.set(pageObject, driver);
+                        field.setAccessible(false);
+                    }
+                } catch (IllegalAccessException e) {
+                    LOG.error("Could not inject WebDriver", e);
+                }
+            }
+        }
+    }
+
 
     protected abstract String getUrlToEvaluate();
 
