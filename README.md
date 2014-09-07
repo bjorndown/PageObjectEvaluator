@@ -1,7 +1,8 @@
 PageObjectEvaluator
 ===================
+[*Download*](poe.zip) plugin ZIP built against commit bfee013
 
-Allows evaluating PageObjects ([1][], [2][]) without starting a full Selenium test run, just feed it some HTML.
+Allows evaluating PageObjects [[1][], [2][]] without starting a full Selenium test run, just feed it some HTML.
 
 - Evaluates @FindBy* by calling PageFactory.initElements()
 - Tries to inject WebDriver into PageObject
