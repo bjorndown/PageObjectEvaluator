@@ -2,21 +2,26 @@
   <id>com.intellij.plugin.poe</id>
   <name>PageObject evaluator</name>
   <version>0.1</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor url="https://github.com/bjorm/PageObjectEvaluator">https://github.com/bjorm</vendor>
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+    Allows evaluating PageObjects without starting a full Selenium test run, just feed it some HTML.
+
+    <ul>
+        <li>Evaluates @FindBy* by calling PageFactory.initElements()</li>
+        <li>Tries to inject WebDriver into PageObject</li>
+        <li>HTML snippets work as well</li>
+    </ul>
+
     ]]></description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
+
     ]]>
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="131"/>
+  <idea-version since-build="123.72"/>
 
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
