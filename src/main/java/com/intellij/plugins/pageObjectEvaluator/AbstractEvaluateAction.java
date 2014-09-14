@@ -46,13 +46,17 @@ abstract class AbstractEvaluateAction extends AnAction {
             Class clazz = loadClass(psiFile);
             Object pageObject = populatePageObject(clazz);
             HashMap<String, Object> methodNameToResult = evaluatePageObject(pageObject);
-            LineSet lineSet = new LineSet();
-            lineSet.documentCreated(editor.getDocument());
-            LineToMethodOutputMapper lineToMethodOutputMapper = new LineToMethodOutputMapper(methodNameToResult, psiFile, lineSet);
+            LineToMethodOutputMapper lineToMethodOutputMapper = new LineToMethodOutputMapper(methodNameToResult, psiFile, createLineSet(editor));
             editor.getGutter().registerTextAnnotation(new MethodOutputGutterProvider(lineToMethodOutputMapper));
         } catch (ClassNotFoundException | MalformedURLException | InvocationTargetException | IllegalAccessException e1) {
             LOG.error("Error ", e1);
         }
+    }
+
+    private LineSet createLineSet(Editor editor) {
+        LineSet lineSet = new LineSet();
+        lineSet.documentCreated(editor.getDocument());
+        return lineSet;
     }
 
     private PsiJavaFile getPsiFile(AnActionEvent e) {

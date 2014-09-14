@@ -10,7 +10,8 @@ public class EvaluateAgainstFileOrUrlAction extends AbstractEvaluateAction {
 
     @Override
     protected String getUrlToEvaluate() {
-        FileChooserDialog fileChooser = FileChooserFactoryImpl.getInstance().createFileChooser(FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), null, null);
+        FileChooserDialog fileChooser = FileChooserFactoryImpl.getInstance().createFileChooser(
+                FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), null, null);
         VirtualFile[] chosenFile = fileChooser.choose(null, null);
         Validate.isTrue(chosenFile.length == 1, "FileChooser did not return one file");
         return FILE_PROTOCOL + chosenFile[0].getPresentableUrl();
