@@ -6,6 +6,7 @@ Allows evaluating PageObjects [[1][], [2][]] without starting a full Selenium te
 
 - Evaluates @FindBy* by calling PageFactory.initElements()
 - Tries to inject WebDriver into PageObject
+- Executes all no-args methods and prints their output in the editor gutter
 - HTML snippets work as well
 
 [1]: https://code.google.com/p/selenium/wiki/PageObjects
