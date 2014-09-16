@@ -1,3 +1,6 @@
+*IMPORTANT NOTE*:
+This plugin is far from finished. if you have suggestions, feel free to contact me or open an issue here on github.
+
 PageObjectEvaluator
 ===================
 [*Download*](poe.zip) plugin ZIP built against commit bfee013
