@@ -48,7 +48,13 @@ abstract class AbstractEvaluateAction extends AnAction {
             HashMap<String, Object> methodNameToResult = evaluatePageObject(pageObject);
             LineToMethodOutputMapper lineToMethodOutputMapper = new LineToMethodOutputMapper(methodNameToResult, psiFile, createLineSet(editor));
             editor.getGutter().registerTextAnnotation(new MethodOutputGutterProvider(lineToMethodOutputMapper));
-        } catch (ClassNotFoundException | MalformedURLException | InvocationTargetException | IllegalAccessException e1) {
+        } catch (ClassNotFoundException e1) {
+            LOG.error("Error ", e1);
+        } catch (MalformedURLException e1) {
+            LOG.error("Error ", e1);
+        } catch (InvocationTargetException e1) {
+            LOG.error("Error ", e1);
+        } catch (IllegalAccessException e1) {
             LOG.error("Error ", e1);
         }
     }
@@ -109,9 +115,9 @@ abstract class AbstractEvaluateAction extends AnAction {
     }
 
     private HashMap<String, Object> evaluatePageObject(Object pageObject) throws IllegalAccessException, InvocationTargetException {
-        HashMap<String, Object> methodToOutputMap = new HashMap<>();
+        HashMap<String, Object> methodToOutputMap = new HashMap<String, Object>();
         for (Method method : pageObject.getClass().getMethods()) {
-            if (method.getParameterCount() == 0 && shouldBeCalled(method)) {
+            if (method.getParameterTypes().length == 0 && shouldBeCalled(method)) {
                 try {
                     methodToOutputMap.put(method.getName(), method.invoke(pageObject));
                 } catch (Exception e) {

@@ -49,7 +49,7 @@ class MethodOutputGutterProvider implements TextAnnotationGutterProvider {
 
     @Override
     public List<AnAction> getPopupActions(int line, Editor editor) {
-        return new ArrayList<>();
+        return new ArrayList<AnAction>();
     }
 
     @Override

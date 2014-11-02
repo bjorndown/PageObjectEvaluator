@@ -11,7 +11,7 @@ public class LineToMethodOutputMapper {
     private final HashMap<String, Object> methodObjectMap;
     private PsiJavaFile psiFile;
     private final LineSet lineSet;
-    private Map<Integer, String> lineToOutputMap = new HashMap<>();
+    private Map<Integer, String> lineToOutputMap = new HashMap<Integer, String>();
 
     public LineToMethodOutputMapper(HashMap<String, Object> methodObjectMap, PsiJavaFile psiFile, LineSet lineSet) {
         this.methodObjectMap = methodObjectMap;
