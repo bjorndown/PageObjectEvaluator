@@ -1,18 +1,12 @@
-*IMPORTANT NOTE*:
-This plugin is far from finished. if you have suggestions, feel free to contact me or open an issue here on github.
-
 PageObjectEvaluator
 ===================
 [*Download*](poe.zip) plugin ZIP built against commit bfee013
 
-Allows evaluating PageObjects [[1][], [2][]] without starting a full Selenium test run, just feed it some HTML.
+Allows evaluating [PageObjects][https://code.google.com/p/selenium/wiki/PageObjects] without starting a full Selenium test run, just feed it some HTML.
 
-- Evaluates @FindBy* by calling PageFactory.initElements()
-- Tries to inject WebDriver into PageObject
-- Executes all no-args methods and prints their output in the editor gutter
+- Evaluates @FindBy*
+- Tries to inject WebDriver into PageObject, if there is such a field
+- Executes all no-args methods and prints their output in the console
 - HTML snippets work as well
-
-[1]: https://code.google.com/p/selenium/wiki/PageObjects
-[2]: http://martinfowler.com/bliki/PageObject.html
 
 ![Screenshot](/doc/screenshot.png)
