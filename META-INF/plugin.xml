@@ -29,25 +29,6 @@
   <depends>com.intellij.modules.lang</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
+    <configurationType implementation="com.intellij.plugins.pageObjectEvaluator.PageObjectRunConfigType"/>
   </extensions>
-
-  <application-components>
-    <!-- Add your application components here -->
-  </application-components>
-
-  <project-components>
-    <!-- Add your project components here -->
-  </project-components>
-
-  <actions>
-    <!-- Add your actions here -->
-      <group popup="true" text="Evaluate PageObject" id="pageObjectEvaluatorMenu" >
-          <add-to-group group-id="ToolsMenu" anchor="last"/>
-          <action id="pageObjectEvaluator.fileOrUrl" class="com.intellij.plugins.pageObjectEvaluator.EvaluateAgainstFileOrUrlAction" text="File/URL" description="Evaluate PageObject against an URL or File"/>
-          <action id="pageObjectEvaluator.pastedText" class="com.intellij.plugins.pageObjectEvaluator.EvaluateAgainstPastedHtmlAction" text="Pasted text" description="Evaluate PageObject against pasted HTML"/>
-      </group>
-
-  </actions>
-
 </idea-plugin>
