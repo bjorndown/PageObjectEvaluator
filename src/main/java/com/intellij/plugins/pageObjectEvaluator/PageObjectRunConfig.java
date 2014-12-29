@@ -16,23 +16,20 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.String;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements CommonJavaRunConfigurationParameters {
-    public static final String RUN_CLASS_ELEMENT_NAME = "runClass";
     public static final String MAIN_CLASS_NAME = "com.intellij.plugins.pageObjectEvaluator.RunPageObjectMain";
+    private static final String RUN_CLASS_ELEMENT_NAME = "runClass";
+    private static final String HTML_FILE_ELEMENT_NAME = "htmlFile";
     private RunConfigData runConfigData;
 
     public PageObjectRunConfig(String name, ConfigurationFactory factory, Project project) {
         super(name, new JavaRunConfigurationModule(project, false), factory);
-        runConfigData = new RunConfigData();
-    }
-
-    public PageObjectRunConfig(ConfigurationFactory factory, Project project) {
-        super(new JavaRunConfigurationModule(project, false), factory);
         runConfigData = new RunConfigData();
     }
 
@@ -148,12 +145,19 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         JavaRunConfigurationExtensionManager.getInstance().writeExternal(this, element);
         writeModule(element);
         writeRunClass(element);
+        writeHtmlFile(element);
         PathMacroManager.getInstance(getProject()).collapsePathsRecursively(element);
     }
 
     private void writeRunClass(Element element) {
         Element runClass = new Element(RUN_CLASS_ELEMENT_NAME);
         runClass.setText(runConfigData.getRunClass());
+        element.addContent(runClass);
+    }
+
+    private void writeHtmlFile(Element element) {
+        Element runClass = new Element(HTML_FILE_ELEMENT_NAME);
+        runClass.setText(runConfigData.getHtmlFile());
         element.addContent(runClass);
     }
 
@@ -164,6 +168,7 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         JavaRunConfigurationExtensionManager.getInstance().readExternal(this, element);
         readModule(element);
         readRunClass(element);
+        readHtmlFile(element);
     }
 
     private void readRunClass(Element element) {
@@ -171,8 +176,21 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         runConfigData.setRunClass(runClass.getText());
     }
 
+    private void readHtmlFile(Element element) {
+        Element htmlFileElement = element.getChild(HTML_FILE_ELEMENT_NAME);
+        runConfigData.setHtmlFile(htmlFileElement.getText());
+    }
+
     public void setRunClass(String runClass) {
         runConfigData.setRunClass(runClass);
+    }
+
+    public String getHtmlFile() {
+        return runConfigData.getHtmlFile();
+    }
+
+    public void setHtmlFile(String htmlFile) {
+        runConfigData.setHtmlFile(htmlFile);
     }
 
     public static class RunConfigData {
@@ -186,6 +204,7 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         private String alternativeJrePath;
         private String runClass;
         private String aPackage;
+        private String htmlFile;
 
         public void setEnvs(Map<String,String> envs) {
             this.envs = envs;
@@ -261,6 +280,14 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
 
         public void setaPackage(String aPackage) {
             this.aPackage = aPackage;
+        }
+
+        public String getHtmlFile() {
+            return htmlFile;
+        }
+
+        public void setHtmlFile(String htmlFile) {
+            this.htmlFile = htmlFile;
         }
     }
 }

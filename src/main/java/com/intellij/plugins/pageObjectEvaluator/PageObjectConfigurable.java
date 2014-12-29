@@ -3,10 +3,13 @@ package com.intellij.plugins.pageObjectEvaluator;
 import com.intellij.execution.ui.AlternativeJREPanel;
 import com.intellij.execution.ui.CommonJavaParametersPanel;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LabeledComponent;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.psi.JavaCodeFragment;
 import com.intellij.ui.EditorTextFieldWithBrowseButton;
 import com.intellij.ui.PanelWithAnchor;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +24,7 @@ public class PageObjectConfigurable extends SettingsEditor<PageObjectRunConfig> 
     private LabeledComponent<JComboBox> myModule;
     private AlternativeJREPanel myAlternativeJREPanel;
     private LabeledComponent<EditorTextFieldWithBrowseButton> myClass;
+    private LabeledComponent<TextFieldWithBrowseButton> myHtmlFile;
     private Project project;
     private JComponent anchor;
     private final ConfigurationModuleSelector myModuleSelector;
@@ -50,6 +54,7 @@ public class PageObjectConfigurable extends SettingsEditor<PageObjectRunConfig> 
     @Override
     protected void resetEditorFrom(PageObjectRunConfig runConfig) {
         myClass.getComponent().setText(runConfig.getRunClass());
+        myHtmlFile.getComponent().setText(runConfig.getHtmlFile());
         myCommonJavaParameters.reset(runConfig);
         myModuleSelector.reset(runConfig);
 
@@ -58,6 +63,7 @@ public class PageObjectConfigurable extends SettingsEditor<PageObjectRunConfig> 
     @Override
     protected void applyEditorTo(PageObjectRunConfig runConfig) throws ConfigurationException {
         runConfig.setRunClass(myClass.getComponent().getText());
+        runConfig.setHtmlFile(myHtmlFile.getComponent().getText());
         myCommonJavaParameters.applyTo(runConfig);
         myModuleSelector.applyTo(runConfig);
     }
@@ -69,7 +75,20 @@ public class PageObjectConfigurable extends SettingsEditor<PageObjectRunConfig> 
     }
 
     private void createUIComponents() {
+        createClassTextField();
+        createHtmlFileTextField();
+    }
+
+    private void createHtmlFileTextField() {
+        myHtmlFile = new LabeledComponent<TextFieldWithBrowseButton>();
+        TextFieldWithBrowseButton textfield = new TextFieldWithBrowseButton();
+        textfield.addBrowseFolderListener("Select HTML file", null, project, new FileChooserDescriptor(true, false, false, false, false, false));
+        myHtmlFile.setComponent(textfield);
+    }
+
+    private void createClassTextField() {
         myClass = new LabeledComponent<EditorTextFieldWithBrowseButton>();
-        myClass.setComponent(new EditorTextFieldWithBrowseButton(project, true));
+        EditorTextFieldWithBrowseButton myClassBrowseTextField = new EditorTextFieldWithBrowseButton(project, true, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE);
+        myClass.setComponent(myClassBrowseTextField);
     }
 }
