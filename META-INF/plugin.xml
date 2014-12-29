@@ -1,22 +1,18 @@
 <idea-plugin version="2">
   <id>com.intellij.plugin.poe</id>
   <name>PageObject evaluator</name>
-  <version>0.1</version>
+  <version>0.2</version>
   <vendor url="https://github.com/bjorm/PageObjectEvaluator">https://github.com/bjorm</vendor>
 
   <description><![CDATA[
     Allows evaluating PageObjects without starting a full Selenium test run, just feed it some HTML.
-
-    <ul>
-        <li>Evaluates @FindBy* by calling PageFactory.initElements()</li>
-        <li>Tries to inject WebDriver into PageObject</li>
-        <li>HTML snippets work as well</li>
-    </ul>
-
     ]]></description>
 
   <change-notes><![CDATA[
-
+      <h1>v0.2</h1>
+      Plugin is no longer used through menu. Instead it now provides its own type of run configuration where you
+      specify the page object class and possibly an HTML file. If no file is given, user is prompted to paste HTML
+      before page object is evaluated.
     ]]>
   </change-notes>
 
