@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PageObjectEvaluator {
     private static final Logger LOG = Logger.getLogger(PageObjectEvaluator.class);
@@ -27,7 +28,7 @@ public class PageObjectEvaluator {
             Class clazz = loadClass();
             Object pageObject = populatePageObject(clazz);
             HashMap<String, Object> methodNameToResult = evaluatePageObject(pageObject);
-            LOG.info(methodNameToResult);
+            printToConsole(methodNameToResult);
         } catch (ClassNotFoundException e1) {
             LOG.error("Error ", e1);
         } catch (MalformedURLException e1) {
@@ -36,6 +37,12 @@ public class PageObjectEvaluator {
             LOG.error("Error ", e1);
         } catch (IllegalAccessException e1) {
             LOG.error("Error ", e1);
+        }
+    }
+
+    private void printToConsole(HashMap<String, Object> methodNameToResult) {
+        for (Map.Entry<String, Object> stringObjectEntry : methodNameToResult.entrySet()) {
+            LOG.info(stringObjectEntry.getKey() + ": " + stringObjectEntry.getValue());
         }
     }
 
