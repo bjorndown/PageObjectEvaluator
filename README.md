@@ -1,7 +1,5 @@
 PageObjectEvaluator
 ===================
-[*Download*](poe.zip) plugin ZIP built against commit bfee013
-
 Allows evaluating [PageObjects](https://code.google.com/p/selenium/wiki/PageObjects) without starting a full Selenium test run, just feed it some HTML.
 
 - Evaluates @FindBy*
@@ -10,3 +8,11 @@ Allows evaluating [PageObjects](https://code.google.com/p/selenium/wiki/PageObje
 - HTML snippets work as well
 
 ![Screenshot](/doc/screenshot.png)
+
+How to install
+===============
+
+- Install using IntelliJ's plugin registry
+- [Download](poe.zip) plugin ZIP from github
+- Download from [plugins.jetbrains.com](http://plugins.jetbrains.com/plugin/7553)
+
