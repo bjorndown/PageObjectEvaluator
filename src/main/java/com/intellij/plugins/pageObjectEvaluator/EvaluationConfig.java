@@ -1,20 +1,39 @@
 package com.intellij.plugins.pageObjectEvaluator;
 
-import com.google.gson.Gson;
+import com.intellij.execution.configurations.ParametersList;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 public class EvaluationConfig {
 
     public static final String FILE_PROTOCOL = "file://";
+    public static final String FILE_PATH_ARG_NAME = "htmlFilePath";
+    public static final String CLASS_NAME_ARG_NAME = "className";
+    public static final String MODULE_OUTPUT_PATH_ARG_NAME = "moduleOutputPath";
 
     private String classname;
     private String moduleOutputPath;
     private String htmlFilePath;
 
-    public static EvaluationConfig from(String args) {
-        return new Gson().fromJson(args, EvaluationConfig.class);
+    public static EvaluationConfig from(String[] args) {
+        String htmlFilePath = getCommandLineArg(FILE_PATH_ARG_NAME, args);
+        String className = getCommandLineArg(CLASS_NAME_ARG_NAME, args);
+        String moduleOutputPath = getCommandLineArg(MODULE_OUTPUT_PATH_ARG_NAME, args);
+        return new EvaluationConfig(className, moduleOutputPath, htmlFilePath);
+    }
+
+    @Nullable
+    private static String getCommandLineArg(@NotNull  String argName, @NotNull  String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].endsWith(argName) && i + 1 < args.length) {
+                return args[i + 1];
+            }
+        }
+        return null;
     }
 
     public static EvaluationConfig from(PageObjectRunConfig runConfig) {
@@ -34,10 +53,6 @@ public class EvaluationConfig {
         return FILE_PROTOCOL + CompilerPaths.getModuleOutputPath(module, false);
     }
 
-    public String toArgs() {
-        return new Gson().toJson(this);
-    }
-
     private EvaluationConfig(String classname, String moduleOutputPath, String htmlFilePath) {
         this.classname = classname;
         this.moduleOutputPath = moduleOutputPath;
@@ -54,5 +69,11 @@ public class EvaluationConfig {
 
     public String getHtmlFilePath() {
         return htmlFilePath;
+    }
+
+    public void populateParameterList(ParametersList programParametersList) {
+        programParametersList.add(FILE_PATH_ARG_NAME, getHtmlFilePath());
+        programParametersList.add(CLASS_NAME_ARG_NAME, getClassname());
+        programParametersList.add(MODULE_OUTPUT_PATH_ARG_NAME, getModuleOutputPath());
     }
 }

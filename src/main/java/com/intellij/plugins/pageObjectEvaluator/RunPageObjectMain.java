@@ -9,7 +9,7 @@ public class RunPageObjectMain {
         ConsoleAppender consoleAppender = new ConsoleAppender(new PatternLayout("%m%n"));
         BasicConfigurator.configure(consoleAppender);
         Logger.getRootLogger().setLevel(Level.INFO);
-        EvaluationConfig config = EvaluationConfig.from(args[0]);
+        EvaluationConfig config = EvaluationConfig.from(args);
         new PageObjectEvaluator(config).evaluate();
     }
 }

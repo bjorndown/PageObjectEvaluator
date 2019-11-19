@@ -26,7 +26,10 @@ public class PageObjectRunState extends BaseJavaApplicationCommandLineState<Page
         JavaParametersUtil.configureModule(module, params, classPathType, jreHome);
         params.setJdk(JavaParametersUtil.createProjectJdk(myConfiguration.getProject(), jreHome));
         params.setMainClass(PageObjectRunConfig.MAIN_CLASS_NAME);
-        params.getProgramParametersList().add(EvaluationConfig.from(myConfiguration).toArgs());
+
+        EvaluationConfig evaluationConfig = EvaluationConfig.from(myConfiguration);
+        evaluationConfig.populateParameterList(params.getProgramParametersList());
+
         params.getClassPath().add(PathUtil.getJarPathForClass(RunPageObjectMain.class));
         params.getClassPath().add(PathUtil.getJarPathForClass(Logger.class));
         setupJavaParameters(params);
