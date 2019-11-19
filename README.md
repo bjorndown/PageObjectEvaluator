@@ -39,5 +39,17 @@ Allows evaluating [PageObjects](https://github.com/SeleniumHQ/selenium/wiki/Page
 ```
 
 ## Troubleshooting
+
+### Build-time
+
+#### Class not found: JPanel
 If you encounter `Class not found: javax.swing.JPanel`, make sure you are building
 the plugin with Java 8. See https://youtrack.jetbrains.com/issue/IDEA-191412
+
+### Run-time
+
+#### Class not found: Webdriver
+If you encounter `java.lang.NoClassDefFoundError: org/openqa/selenium/WebDriver`,
+make sure you have the correct module selected in the run configuration:
+![Run config module selection](/doc/troubleshooting-run-config-module-selection.png)
+Note: This example is taken from a gradle project
