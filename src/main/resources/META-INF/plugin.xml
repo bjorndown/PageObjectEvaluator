@@ -1,4 +1,4 @@
-<idea-plugin version="2">
+<idea-plugin>
   <id>com.intellij.plugin.poe</id>
   <name>PageObject evaluator</name>
   <version>0.2</version>
