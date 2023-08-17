@@ -1,7 +1,7 @@
 <idea-plugin require-restart="false">
   <id>com.intellij.plugin.poe</id>
   <name>PageObjectEvaluator</name>
-  <version>0.3</version>
+  <version>0.4</version>
   <vendor url="https://github.com/bjorndown/PageObjectEvaluator">https://github.com/bjorndown
   </vendor>
 
