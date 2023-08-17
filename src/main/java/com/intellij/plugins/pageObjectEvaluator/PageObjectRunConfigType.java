@@ -1,50 +1,24 @@
 package com.intellij.plugins.pageObjectEvaluator;
 
-import com.intellij.execution.configuration.ConfigurationFactoryEx;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
+import com.intellij.execution.configurations.ConfigurationTypeBase;
+import com.intellij.execution.configurations.ConfigurationTypeUtil;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.IconManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class PageObjectRunConfigType implements ConfigurationType {
-    private ConfigurationFactory myConfigurationFactory;
+public class PageObjectRunConfigType extends ConfigurationTypeBase {
+    static final String ID = "PageObjectEvaluator";
+    static final Icon icon = IconLoader.createLazy(() -> IconManager.getInstance().getIcon("META-INF/pluginIcon.svg", PageObjectRunConfigType.class));
 
-    public PageObjectRunConfigType() {
-        myConfigurationFactory = new ConfigurationFactoryEx(this) {
-            @Override
-            public RunConfiguration createTemplateConfiguration(Project project) {
-                return new PageObjectRunConfig("", this, project);
-            }
-        };
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "PageObject";
-    }
-
-    @Override
-    public String getConfigurationTypeDescription() {
-        return "PageObject run configuration";
-    }
-
-    @Override
-    public Icon getIcon() {
-        return AllIcons.RunConfigurations.Web_app;
+    protected PageObjectRunConfigType() {
+        super(ID, "PageObjectEvaluator", "Evaluates a PageObject without running a full selenium test test", icon);
+        addFactory(new RunConfigurationFactory(this));
     }
 
     @NotNull
-    @Override
-    public String getId() {
-        return "PageObjectEvaluator";
-    }
-
-    @Override
-    public ConfigurationFactory[] getConfigurationFactories() {
-        return new ConfigurationFactory[] { myConfigurationFactory };
+    public static PageObjectRunConfigType getInstance() {
+        return ConfigurationTypeUtil.findConfigurationType(PageObjectRunConfigType.class);
     }
 }

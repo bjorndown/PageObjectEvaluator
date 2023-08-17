@@ -1,30 +1,44 @@
-<idea-plugin>
+<idea-plugin require-restart="false">
   <id>com.intellij.plugin.poe</id>
-  <name>PageObject evaluator</name>
-  <version>0.2</version>
-  <vendor url="https://github.com/bjorm/PageObjectEvaluator">https://github.com/bjorm</vendor>
+  <name>PageObjectEvaluator</name>
+  <version>0.3</version>
+  <vendor url="https://github.com/bjorndown/PageObjectEvaluator">https://github.com/bjorndown
+  </vendor>
 
   <description><![CDATA[
-    Allows evaluating PageObjects without starting a full Selenium test run, just feed it some HTML.
+    Allows evaluating PageObjects against an HTML snippet or file.
     ]]></description>
 
   <change-notes><![CDATA[
-      <h1>v0.2</h1>
-      Plugin is no longer used through menu. Instead it now provides its own type of run configuration where you
+      <h2>v0.3</h2>
+      This update will break existing run configurations, Sorry.
+      <ul>
+      <li>Add ability to store HTML snippet in run configuration</li>
+      <li>Add ability to create run configuration from context</li>
+      <li>Start overhaul of run configuration UI. Still WIP.</li>
+      <li>Address plugin verifier results, base plugin on build 211.6693.111</li>
+      </ul>
+
+      <h2>v0.2</h2>
+      <p>Plugin is no longer used through menu. Instead it now provides its own type of run configuration where you
       specify the page object class and possibly an HTML file. If no file is given, user is prompted to paste HTML
-      before page object is evaluated.
+      before page object is evaluated.</p>
     ]]>
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="123.72"/>
+  <idea-version since-build="211.6693.111" until-build="232.*" />
 
-  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
-       on how to target different products -->
+    <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+         on how to target different products -->
   <!-- uncomment to enable plugin in all products-->
   <depends>com.intellij.modules.lang</depends>
-
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.java</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <configurationType implementation="com.intellij.plugins.pageObjectEvaluator.PageObjectRunConfigType"/>
+    <configurationType
+      implementation="com.intellij.plugins.pageObjectEvaluator.PageObjectRunConfigType"/>
+    <runConfigurationProducer implementation="com.intellij.plugins.pageObjectEvaluator.PoeRunConfigurationProducer"/>
   </extensions>
+
 </idea-plugin>

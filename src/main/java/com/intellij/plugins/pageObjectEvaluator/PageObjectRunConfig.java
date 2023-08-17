@@ -1,36 +1,66 @@
 package com.intellij.plugins.pageObjectEvaluator;
 
-import com.intellij.diagnostic.logging.LogConfigurationPanel;
-import com.intellij.execution.*;
+import com.intellij.execution.Executor;
+import com.intellij.execution.JavaRunConfigurationBase;
+import com.intellij.execution.JavaRunConfigurationExtensionManager;
+import com.intellij.execution.ShortenCommandLine;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.components.PathMacroManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.options.SettingsEditorGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.String;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements CommonJavaRunConfigurationParameters {
+// TODO rather back to extending ModuleBasedConfiguration again?
+public class PageObjectRunConfig extends JavaRunConfigurationBase {
+
     public static final String MAIN_CLASS_NAME = "com.intellij.plugins.pageObjectEvaluator.RunPageObjectMain";
-    private static final String RUN_CLASS_ELEMENT_NAME = "runClass";
+    private static final String RUN_CLASS_ELEMENT_NAME = "pageObjectClass";
     private static final String HTML_FILE_ELEMENT_NAME = "htmlFile";
-    private RunConfigData runConfigData;
+    private static final String HTML_SNIPPET_ELEMENT_NAME = "htmlSnippet";
+    private final RunConfigData runConfigData; // TODO use RunConfigurationOptions ?
 
     public PageObjectRunConfig(String name, ConfigurationFactory factory, Project project) {
         super(name, new JavaRunConfigurationModule(project, false), factory);
         runConfigData = new RunConfigData();
+    }
+
+    @Override
+    public void checkConfiguration() throws RuntimeConfigurationException {
+        if (getOptions().getModule() == null) {
+            throw new RuntimeConfigurationError("Module must be selected");
+        }
+
+        if (getPageObjectClass().isBlank()) {
+            throw new RuntimeConfigurationError("PageObject class must be selected");
+        }
+
+        var htmlFileIsBlank = getHtmlFile().isBlank();
+        var htmlSnippetIsBlank = getHtmlSnippet().isBlank();
+
+        if (htmlFileIsBlank && htmlSnippetIsBlank) {
+            throw new RuntimeConfigurationError("Either a valid HTML file must be selected or an HTML snippet must be entered");
+        }
+
+        if (!htmlFileIsBlank && !htmlSnippetIsBlank) {
+            throw new RuntimeConfigurationWarning("Both HTML file and HTML snippets are entered, HTML file will be ignored");
+        }
+
+        if (htmlSnippetIsBlank && !htmlFileIsBlank && !FileUtil.exists(getHtmlFile())) {
+            throw new RuntimeConfigurationError("HTML file must exist");
+        }
     }
 
     @Override
@@ -41,16 +71,13 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
     @NotNull
     @Override
     public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-        SettingsEditorGroup<PageObjectRunConfig> group = new SettingsEditorGroup<PageObjectRunConfig>();
-        group.addEditor(ExecutionBundle.message("run.configuration.configuration.tab.title"), new PageObjectConfigurable(getProject()));
-        JavaRunConfigurationExtensionManager.getInstance().appendEditors(this, group);
-        group.addEditor(ExecutionBundle.message("logs.tab.title"), new LogConfigurationPanel<PageObjectRunConfig>());
-        return group;
+        return new PageObjectConfigurable(this, getProject());
     }
 
     @Nullable
     @Override
-    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
+    public RunProfileState getState(@NotNull Executor executor,
+                                    @NotNull ExecutionEnvironment environment) {
         return new PageObjectRunState(environment, this);
     }
 
@@ -84,10 +111,9 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         runConfigData.setAlternativeJrePath(path);
     }
 
-    @Nullable
     @Override
-    public String getRunClass() {
-        return runConfigData.getRunClass();
+    public @Nullable String getRunClass() {
+        return MAIN_CLASS_NAME;
     }
 
     @Nullable
@@ -140,40 +166,47 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
     }
 
     @Override
-    public void writeExternal(Element element) throws WriteExternalException {
+    public void writeExternal(@NotNull Element element) throws WriteExternalException {
         super.writeExternal(element);
         JavaRunConfigurationExtensionManager.getInstance().writeExternal(this, element);
-        writeModule(element);
-        writeRunClass(element);
+        writePageObjectClass(element);
         writeHtmlFile(element);
+        writeHtmlSnippet(element);
         PathMacroManager.getInstance(getProject()).collapsePathsRecursively(element);
     }
 
-    private void writeRunClass(Element element) {
+    private void writePageObjectClass(Element element) {
         Element runClass = new Element(RUN_CLASS_ELEMENT_NAME);
-        runClass.setText(runConfigData.getRunClass());
+        runClass.setText(runConfigData.getPageObjectClass());
         element.addContent(runClass);
     }
 
     private void writeHtmlFile(Element element) {
-        Element runClass = new Element(HTML_FILE_ELEMENT_NAME);
-        runClass.setText(runConfigData.getHtmlFile());
-        element.addContent(runClass);
+        Element htmlFile = new Element(HTML_FILE_ELEMENT_NAME);
+        htmlFile.setText(runConfigData.getHtmlFile());
+        element.addContent(htmlFile);
+    }
+
+    private void writeHtmlSnippet(Element element) {
+        Element htmlSnippetElement = new Element(HTML_SNIPPET_ELEMENT_NAME);
+        htmlSnippetElement.setText(runConfigData.getHtmlSnippet());
+        element.addContent(htmlSnippetElement);
     }
 
     @Override
-    public void readExternal(Element element) throws InvalidDataException {
+    public void readExternal(@NotNull Element element) throws InvalidDataException {
         PathMacroManager.getInstance(getProject()).expandPaths(element);
         super.readExternal(element);
         JavaRunConfigurationExtensionManager.getInstance().readExternal(this, element);
         readModule(element);
-        readRunClass(element);
+        readPageObjectClass(element);
         readHtmlFile(element);
+        readHtmlSnippet(element);
     }
 
-    private void readRunClass(Element element) {
+    private void readPageObjectClass(Element element) {
         Element runClass = element.getChild(RUN_CLASS_ELEMENT_NAME);
-        runConfigData.setRunClass(runClass.getText());
+        runConfigData.setPageObjectClass(runClass.getText());
     }
 
     private void readHtmlFile(Element element) {
@@ -181,8 +214,17 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         runConfigData.setHtmlFile(htmlFileElement.getText());
     }
 
-    public void setRunClass(String runClass) {
-        runConfigData.setRunClass(runClass);
+    private void readHtmlSnippet(Element element) {
+        Element htmlFileElement = element.getChild(HTML_SNIPPET_ELEMENT_NAME);
+        runConfigData.setHtmlSnippet(htmlFileElement.getText());
+    }
+
+    public String getPageObjectClass() {
+        return runConfigData.getPageObjectClass();
+    }
+
+    public void setPageObjectClass(String runClass) {
+        runConfigData.setPageObjectClass(runClass);
     }
 
     public String getHtmlFile() {
@@ -193,20 +235,39 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
         runConfigData.setHtmlFile(htmlFile);
     }
 
+    @Override
+    public @Nullable ShortenCommandLine getShortenCommandLine() {
+        return null;
+    }
+
+    @Override
+    public void setShortenCommandLine(@Nullable ShortenCommandLine mode) {
+
+    }
+
+    public void setHtmlSnippet(String htmlSnippet) {
+        runConfigData.setHtmlSnippet(htmlSnippet);
+    }
+
+    public String getHtmlSnippet() {
+        return runConfigData.getHtmlSnippet();
+    }
+
     public static class RunConfigData {
 
         private boolean passParentEnvs;
-        private Map<String, String> envs = new HashMap<String, String>();
+        private Map<String, String> envs = new HashMap<>();
         private String workingDirectory;
         private String programParameters;
         private String VMParameters;
         private boolean alternativeJrePathEnabled;
         private String alternativeJrePath;
-        private String runClass;
+        private String pageObjectClass;
         private String aPackage;
         private String htmlFile;
+        private String htmlSnippet;
 
-        public void setEnvs(Map<String,String> envs) {
+        public void setEnvs(Map<String, String> envs) {
             this.envs = envs;
         }
 
@@ -262,12 +323,12 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
             this.passParentEnvs = passParentEnvs;
         }
 
-        public String getRunClass() {
-            return runClass;
+        public String getPageObjectClass() {
+            return pageObjectClass;
         }
 
-        public void setRunClass(String runClass) {
-            this.runClass = runClass;
+        public void setPageObjectClass(String pageObjectClass) {
+            this.pageObjectClass = pageObjectClass;
         }
 
         public String getPackage() {
@@ -288,6 +349,14 @@ public class PageObjectRunConfig extends ModuleBasedConfiguration<JavaRunConfigu
 
         public void setHtmlFile(String htmlFile) {
             this.htmlFile = htmlFile;
+        }
+
+        public String getHtmlSnippet() {
+            return htmlSnippet;
+        }
+
+        public void setHtmlSnippet(String htmlSnippet) {
+            this.htmlSnippet = htmlSnippet;
         }
     }
 }

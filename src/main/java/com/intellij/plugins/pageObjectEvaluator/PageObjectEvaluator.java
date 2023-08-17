@@ -1,23 +1,24 @@
 package com.intellij.plugins.pageObjectEvaluator;
 
-import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.PageFactory;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PageObjectEvaluator {
-    private static final Logger LOG = Logger.getLogger(PageObjectEvaluator.class);
-    private EvaluationConfig evaluationConfig;
+
+    private final EvaluationConfig evaluationConfig;
 
     public PageObjectEvaluator(EvaluationConfig evaluationConfig) {
         this.evaluationConfig = evaluationConfig;
@@ -25,40 +26,34 @@ public class PageObjectEvaluator {
 
     public void evaluate() {
         try {
-            Class clazz = loadClass();
-            Object pageObject = populatePageObject(clazz);
-            HashMap<String, Object> methodNameToResult = evaluatePageObject(pageObject);
+            Class<?> clazz = loadClass();
+            WebDriver driver = new HtmlUnitDriver();
+            Object pageObject = initializePageObject(driver, clazz);
+            tryToInjectWebDriver(pageObject, driver);
+            HashMap<String, Object> methodNameToResult = callPageObjectMethods(pageObject);
+            driver.close();
             printToConsole(methodNameToResult);
-        } catch (ClassNotFoundException e1) {
-            LOG.error("Error ", e1);
-        } catch (MalformedURLException e1) {
-            LOG.error("Error ", e1);
-        } catch (InvocationTargetException e1) {
-            LOG.error("Error ", e1);
-        } catch (IllegalAccessException e1) {
-            LOG.error("Error ", e1);
+        } catch (Exception error) {
+            throw new RuntimeException(MessageFormat.format("Error while evaluating {0}", evaluationConfig.getClassname()), error);
         }
+    }
+
+    private Object initializePageObject(WebDriver driver, Class<?> clazz) {
+        driver.get(evaluationConfig.getHtmlFilePath());
+        return PageFactory.initElements(driver, clazz);
     }
 
     private void printToConsole(HashMap<String, Object> methodNameToResult) {
         for (Map.Entry<String, Object> stringObjectEntry : methodNameToResult.entrySet()) {
-            LOG.info(stringObjectEntry.getKey() + ": " + stringObjectEntry.getValue());
+            System.out.println(stringObjectEntry.getKey() + ": " + stringObjectEntry.getValue());
         }
-    }
-
-    private Object populatePageObject(Class clazz) {
-        WebDriver driver = new HtmlUnitDriver();
-        driver.get(evaluationConfig.getHtmlFilePath());
-        Object pageObject = PageFactory.initElements(driver, clazz);
-        tryToInjectWebDriver(pageObject, driver);
-        return pageObject;
     }
 
     private void tryToInjectWebDriver(Object pageObject, WebDriver driver) {
         for (Field field : pageObject.getClass().getDeclaredFields()) {
             if (field.getType().isAssignableFrom(WebDriver.class)) {
                 try {
-                    if (field.isAccessible()) {
+                    if (field.canAccess(pageObject)) {
                         field.set(pageObject, driver);
                     } else {
                         field.setAccessible(true);
@@ -72,14 +67,17 @@ public class PageObjectEvaluator {
         }
     }
 
-    private Class loadClass() throws MalformedURLException, ClassNotFoundException {
+    private Class<?> loadClass() throws MalformedURLException, ClassNotFoundException {
         URL url = new URL(evaluationConfig.getModuleOutputPath());
-        URLClassLoader classloader = new URLClassLoader(new URL[] { url }, this.getClass().getClassLoader());
-        return classloader.loadClass(evaluationConfig.getClassname());
+        try (URLClassLoader classloader = new URLClassLoader(new URL[]{url}, this.getClass().getClassLoader())) {
+            return classloader.loadClass(evaluationConfig.getClassname());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private HashMap<String, Object> evaluatePageObject(Object pageObject) throws IllegalAccessException, InvocationTargetException {
-        HashMap<String, Object> methodToOutputMap = new HashMap<String, Object>();
+    private HashMap<String, Object> callPageObjectMethods(Object pageObject) throws IllegalAccessException, InvocationTargetException {
+        HashMap<String, Object> methodToOutputMap = new HashMap<>();
         for (Method method : pageObject.getClass().getMethods()) {
             if (method.getParameterTypes().length == 0 && shouldBeCalled(method)) {
                 try {

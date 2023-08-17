@@ -1,94 +1,101 @@
 package com.intellij.plugins.pageObjectEvaluator;
 
-import com.intellij.execution.ui.AlternativeJREPanel;
-import com.intellij.execution.ui.CommonJavaParametersPanel;
-import com.intellij.execution.ui.ConfigurationModuleSelector;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.execution.application.JavaSettingsEditorBase;
+import com.intellij.execution.ui.CommonParameterFragments;
+import com.intellij.execution.ui.ModuleClasspathCombo;
+import com.intellij.execution.ui.SettingsEditorFragment;
+import com.intellij.ide.highlighter.HtmlFileType;
+import com.intellij.lang.html.HTMLLanguage;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.psi.JavaCodeFragment;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.EditorTextFieldWithBrowseButton;
-import com.intellij.ui.PanelWithAnchor;
+import com.intellij.ui.LanguageTextField;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.List;
 
-public class PageObjectConfigurable extends SettingsEditor<PageObjectRunConfig> implements PanelWithAnchor {
-    private JPanel myWholePanel;
-    private CommonJavaParametersPanel myCommonJavaParameters;
-    private LabeledComponent<JComboBox> myModule;
-    private AlternativeJREPanel myAlternativeJREPanel;
-    private LabeledComponent<EditorTextFieldWithBrowseButton> myClass;
-    private LabeledComponent<TextFieldWithBrowseButton> myHtmlFile;
-    private Project project;
-    private JComponent anchor;
-    private final ConfigurationModuleSelector myModuleSelector;
+import static com.intellij.execution.ui.CommandLinePanel.setMinimumWidth;
 
-    public PageObjectConfigurable(Project project) {
+public class PageObjectConfigurable extends JavaSettingsEditorBase<PageObjectRunConfig> {
+
+    public static final String FRAGMENT_GROUP_NAME = "PageObjectEvaluator";
+    private final Project project;
+
+    public PageObjectConfigurable(PageObjectRunConfig pageObjectRunConfig, Project project) {
+        super(pageObjectRunConfig);
         this.project = project;
-        myModuleSelector = new ConfigurationModuleSelector(project, myModule.getComponent());
-        myCommonJavaParameters.setModuleContext(myModuleSelector.getModule());
-        myCommonJavaParameters.setHasModuleMacro();
-        myModule.getComponent().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                myCommonJavaParameters.setModuleContext(myModuleSelector.getModule());
-            }
-        });
     }
 
     @Override
-    public JComponent getAnchor() {
-        return anchor;
-    }
+    protected void customizeFragments(
+            List<SettingsEditorFragment<PageObjectRunConfig, ?>> settingsEditorFragments,
+            SettingsEditorFragment<PageObjectRunConfig, ModuleClasspathCombo> moduleClasspath,
+            CommonParameterFragments<PageObjectRunConfig> commonParameterFragments) {
 
-    @Override
-    public void setAnchor(JComponent anchor) {
-        this.anchor = anchor;
-    }
-
-    @Override
-    protected void resetEditorFrom(PageObjectRunConfig runConfig) {
-        myClass.getComponent().setText(runConfig.getRunClass());
-        myHtmlFile.getComponent().setText(runConfig.getHtmlFile());
-        myCommonJavaParameters.reset(runConfig);
-        myModuleSelector.reset(runConfig);
-
-    }
-
-    @Override
-    protected void applyEditorTo(PageObjectRunConfig runConfig) throws ConfigurationException {
-        runConfig.setRunClass(myClass.getComponent().getText());
-        runConfig.setHtmlFile(myHtmlFile.getComponent().getText());
-        myCommonJavaParameters.applyTo(runConfig);
-        myModuleSelector.applyTo(runConfig);
+        settingsEditorFragments.add(getPageObjectClassFragment());
+        settingsEditorFragments.add(getHtmlFileFragment());
+        settingsEditorFragments.add(getHtmlTextFragment());
     }
 
     @NotNull
-    @Override
-    protected JComponent createEditor() {
-        return myWholePanel;
+    private SettingsEditorFragment<PageObjectRunConfig, LabeledComponent<EditorTextFieldWithBrowseButton>> getPageObjectClassFragment() {
+        var pageObjectClassTextField = new EditorTextFieldWithBrowseButton(
+                project, true, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE);
+        setMinimumWidth(pageObjectClassTextField, 400);
+        SettingsEditorFragment<PageObjectRunConfig, LabeledComponent<EditorTextFieldWithBrowseButton>> pageObjectClassFragment = new SettingsEditorFragment<>(
+                "pageObjectClass", "Page object class", FRAGMENT_GROUP_NAME, wrapInLabel(pageObjectClassTextField, "PageObject Class"), 1,
+                (configuration, component) -> component.getComponent().setText(
+                        configuration.getPageObjectClass()),
+                (configuration, component) -> configuration.setPageObjectClass(component.getComponent().getText()),
+                configuration -> true);
+        pageObjectClassFragment.setRemovable(false);
+        pageObjectClassFragment.setActionDescription("PageObject class to evaluate");
+        pageObjectClassFragment.setHint("Select PageObject class to evaluate");
+        return pageObjectClassFragment;
     }
 
-    private void createUIComponents() {
-        createClassTextField();
-        createHtmlFileTextField();
+    @NotNull
+    private SettingsEditorFragment<PageObjectRunConfig, LabeledComponent<EditorTextField>> getHtmlTextFragment() {
+        var htmlTextField = new LanguageTextField(HTMLLanguage.INSTANCE, getProject(), "", false);
+        setMinimumWidth(htmlTextField, 400);
+
+        var htmlSnippetFragment = new SettingsEditorFragment<PageObjectRunConfig, LabeledComponent<EditorTextField>>(
+                "htmlSnippet", "HTML snippet", FRAGMENT_GROUP_NAME, wrapInLabel(htmlTextField, "HTML Snippet"), 2,
+                (configuration, component) -> component.getComponent().setText(
+                        configuration.getHtmlSnippet()),
+                (configuration, component) -> configuration.setHtmlSnippet(component.getComponent().getText()),
+                configuration -> true);
+
+        htmlSnippetFragment.setActionDescription("Evaluate this PageObject against an HTML snippet");
+        htmlSnippetFragment.setHint("Write an HTML snippet to evaluate this PageObject against");
+        return htmlSnippetFragment;
     }
 
-    private void createHtmlFileTextField() {
-        myHtmlFile = new LabeledComponent<TextFieldWithBrowseButton>();
-        TextFieldWithBrowseButton textfield = new TextFieldWithBrowseButton();
-        textfield.addBrowseFolderListener("Select HTML file", null, project, new FileChooserDescriptor(true, false, false, false, false, false));
-        myHtmlFile.setComponent(textfield);
+    @NotNull
+    private SettingsEditorFragment<PageObjectRunConfig, LabeledComponent<TextFieldWithBrowseButton>> getHtmlFileFragment() {
+        var htmlFileTextField = new TextFieldWithBrowseButton();
+        htmlFileTextField.addBrowseFolderListener("Select HTML File", "", project, FileChooserDescriptorFactory.createSingleFileDescriptor(HtmlFileType.INSTANCE));
+        setMinimumWidth(htmlFileTextField, 400);
+        var htmlFileFragment = new SettingsEditorFragment<PageObjectRunConfig, LabeledComponent<TextFieldWithBrowseButton>>(
+                "htmlFile", "HTML file", FRAGMENT_GROUP_NAME, wrapInLabel(htmlFileTextField, "HTML File"), 3,
+                (configuration, component) -> component.getComponent().setText(
+                        configuration.getHtmlFile()),
+                (configuration, component) -> configuration.setHtmlFile(component.getComponent().getText()),
+                configuration -> false);
+        htmlFileFragment.setActionDescription("Evaluate this PageObject against an HTML file");
+        htmlFileFragment.setHint("Select an HTML file to evaluate this PageObject against");
+        return htmlFileFragment;
     }
 
-    private void createClassTextField() {
-        myClass = new LabeledComponent<EditorTextFieldWithBrowseButton>();
-        EditorTextFieldWithBrowseButton myClassBrowseTextField = new EditorTextFieldWithBrowseButton(project, true, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE);
-        myClass.setComponent(myClassBrowseTextField);
+    private <T extends JComponent> LabeledComponent<T> wrapInLabel(T component, String labelText) {
+        var label = new LabeledComponent<T>();
+        label.setText(labelText);
+        label.setComponent(component);
+        return label;
     }
 }

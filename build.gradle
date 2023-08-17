@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.intellij" version "0.4.13"
+    id "org.jetbrains.intellij" version '1.15.0'
 }
 apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'java'
@@ -11,25 +11,23 @@ repositories {
 
 group = 'com.intellij.plugin.poe'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
-
 test {
     useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
 }
 
 intellij {
-    version '2018.1'
-    pluginName 'page-object evaluator'
-    plugins = []
+    version = '2021.1'
+    plugins = ['com.intellij.java']
+}
+
+patchPluginXml {
+    sinceBuild = "211.6693.111"
+    untilBuild = "232.*"
 }
 
 dependencies {
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.5.2'
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.42.2'
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '2.42.2'
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '2.42.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.10.0'
+    compileOnly group: 'org.seleniumhq.selenium', name: 'htmlunit3-driver', version: '4.9.1'
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '4.8.2'
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '4.6.0'
 }
