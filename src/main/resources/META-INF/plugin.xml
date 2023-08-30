@@ -1,7 +1,7 @@
-<idea-plugin require-restart="false">
+<idea-plugin>
   <id>com.intellij.plugin.poe</id>
   <name>PageObjectEvaluator</name>
-  <version>0.4</version>
+  <version>0.4.1</version>
   <vendor url="https://github.com/bjorndown/PageObjectEvaluator">https://github.com/bjorndown
   </vendor>
 
@@ -10,7 +10,7 @@
     ]]></description>
 
   <change-notes><![CDATA[
-      <h2>v0.3</h2>
+      <h2>v0.4</h2>
       This update will break existing run configurations, Sorry.
       <ul>
       <li>Add ability to store HTML snippet in run configuration</li>
